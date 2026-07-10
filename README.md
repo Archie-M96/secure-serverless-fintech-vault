@@ -1,3 +1,7 @@
+# Enterprise-Grade Serverless Fintech Architecture
+
+This project simulates a real constraint financial institutions face: how do you build a secure document-processing pipeline without paying for infrastructure you don't need? Every design decision below from subnet isolation to the choice of VPC Endpoint over NAT Gateway was made to answer that question, prioritizing zero public-internet exposure for sensitive data and strict least-privilege compliance, while keeping the architecture cost-realistic for a constrained environment.
+
 ## 🛠️ System Architecture & Component Layers
 
 ### 1. Network Layer (VPC Topology & Routing)
