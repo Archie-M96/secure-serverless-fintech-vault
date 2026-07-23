@@ -1,9 +1,9 @@
 # Enterprise-Grade Serverless Fintech Vault
 
-## Why I Built This Project
+## Why I Built This
 I wanted to answer a real constraint financial institutions face: how do you build a secure 
 document-processing pipeline without paying for infrastructure you don't strictly need? Every 
-decision below — from subnet isolation to choosing a VPC Endpoint over a NAT Gateway — was made 
+decision below, from subnet isolation to choosing a VPC Endpoint over a NAT Gateway, was made 
 to keep sensitive data traffic off the public internet while staying cost-realistic.
 
 ## What I Built
@@ -14,7 +14,7 @@ to keep sensitive data traffic off the public internet while staying cost-realis
   an Internet Gateway for managed ingress/egress, and a fully isolated private subnet (the 
   "secure enclave") with no direct internet route.
 - A custom private route table connects to a Gateway VPC Endpoint 
-  (`com.amazonaws.us-east-1.s3`), keeping all storage traffic on the private AWS backbone — no 
+  (`com.amazonaws.us-east-1.s3`), keeping all storage traffic on the private AWS backbone. No 
   NAT Gateway cost overhead.
 
 ### 2. Identity & Access Layer (IAM & STS Trust)
@@ -22,7 +22,7 @@ to keep sensitive data traffic off the public internet while staying cost-realis
 - Deployed an IAM role with an explicit trust policy allowing the Lambda service to assume it via 
   `sts:AssumeRole`.
 - Permissions restricted to `AWSLambdaVPCAccessExecutionRole` plus a customer-managed policy 
-  scoped only to the exact ARN of the vault's S3 bucket — not `*`.
+  scoped only to the exact ARN of the vault's S3 bucket, not `*`.
 
 ### 3. Storage Layer (Secure S3 Document Vault)
 - S3 bucket with a dynamically generated, isolated global namespace.
@@ -32,7 +32,7 @@ to keep sensitive data traffic off the public internet while staying cost-realis
 
 ### 4. Compute Layer (Serverless Execution)
 - Python 3.12 runtime, deployed inside the private subnet.
-- Egress-only security group restricted to port 443 (HTTPS) — nothing else can leave.
+- Egress-only security group restricted to port 443 (HTTPS). Nothing else can leave.
 - Deployment automated via Terraform's `archive_file` provider, which zips `processor.py` and 
   hashes it to guarantee deployment integrity.
 
