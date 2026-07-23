@@ -1,27 +1,43 @@
-# Enterprise-Grade Serverless Fintech Architecture
+# Enterprise-Grade Serverless Fintech Vault
 
-This project simulates a real constraint financial institutions face: how do you build a secure document-processing pipeline without paying for infrastructure you don't need? Every design decision below from subnet isolation to the choice of VPC Endpoint over NAT Gateway was made to answer that question, prioritizing zero public-internet exposure for sensitive data and strict least-privilege compliance, while keeping the architecture cost-realistic for a constrained environment.
+## Why I Built This
+I wanted to answer a real constraint financial institutions face: how do you build a secure 
+document-processing pipeline without paying for infrastructure you don't strictly need? Every 
+decision below — from subnet isolation to choosing a VPC Endpoint over a NAT Gateway — was made 
+to keep sensitive data traffic off the public internet while staying cost-realistic.
 
-## 🛠️ System Architecture & Component Layers
+## What I Built
 
 ### 1. Network Layer (VPC Topology & Routing)
-* **Region:** N. Virginia (`us-east-1`)
-* **Design:** Segmented architecture dividing traffic at the subnet boundary.
-* **Public Subnet:** Attached to an Internet Gateway for managed external ingress/egress.
-* **Private Subnet (Secure Enclave):** Completely isolated from direct internet routing.
-* **Internal Routing:** Utilizes a custom Private Route Table connected to a Gateway VPC Endpoint (`com.amazonaws.us-east-1.s3`), ensuring all storage traffic remains entirely on the private AWS backbone, bypassing the public internet without the cost overhead of a NAT Gateway.
+- **Region:** `us-east-1`
+- Segmented architecture splitting traffic at the subnet boundary: a public subnet attached to 
+  an Internet Gateway for managed ingress/egress, and a fully isolated private subnet (the 
+  "secure enclave") with no direct internet route.
+- A custom private route table connects to a Gateway VPC Endpoint 
+  (`com.amazonaws.us-east-1.s3`), keeping all storage traffic on the private AWS backbone — no 
+  NAT Gateway cost overhead.
 
 ### 2. Identity & Access Layer (IAM & STS Trust)
-* **Framework:** Principle of Least Privilege (PoLP).
-* **Implementation:** Deployed an IAM Role with an explicit trust policy allowing the AWS Lambda service to assume it via the Security Token Service (`sts:AssumeRole`).
-* **Permissions:** Restricted strictly to VPC execution access (`AWSLambdaVPCAccessExecutionRole`) and a custom, customer-managed policy explicitly scoped only to the ARN of the specific S3 vault.
+- Principle of Least Privilege throughout.
+- Deployed an IAM role with an explicit trust policy allowing the Lambda service to assume it via 
+  `sts:AssumeRole`.
+- Permissions restricted to `AWSLambdaVPCAccessExecutionRole` plus a customer-managed policy 
+  scoped only to the exact ARN of the vault's S3 bucket — not `*`.
 
 ### 3. Storage Layer (Secure S3 Document Vault)
-* **Resource:** Amazon S3 with an isolated, dynamically generated global namespace.
-* **Data-at-Rest Protection:** Mandatory Server-Side Encryption utilizing the `AES256` cryptographic standard.
-* **Boundary Security:** Explicit `aws_s3_bucket_public_access_block` configuration applied, physically preventing public ACLs or bucket policies from exposing assets.
+- S3 bucket with a dynamically generated, isolated global namespace.
+- Mandatory server-side encryption (`AES256`) enforced at rest.
+- Explicit `aws_s3_bucket_public_access_block` applied, physically blocking any public ACL or 
+  bucket policy from exposing the data.
 
 ### 4. Compute Layer (Serverless Execution)
-* **Runtime:** Python 3.12 managed environment.
-* **Network Placement:** Physically deployed *inside* the Private Subnet, protected by a strict egress-only Security Group restricted to Port 443 (HTTPS).
-* **Deployment Workflow:** Automated compilation via Terraform's `archive_file` provider, zipping local source code (`processor.py`) and calculating cryptographic hashes to ensure deployment integrity.
+- Python 3.12 runtime, deployed inside the private subnet.
+- Egress-only security group restricted to port 443 (HTTPS) — nothing else can leave.
+- Deployment automated via Terraform's `archive_file` provider, which zips `processor.py` and 
+  hashes it to guarantee deployment integrity.
+
+## What I'd Do Next
+This is a strong v1 of the security posture, but at true enterprise scale I'd add KMS 
+customer-managed keys instead of SSE-S3 for stricter key-rotation control, Cognito with 
+enforced MFA for user-facing access, and CloudTrail data events on the bucket so every object 
+access is individually auditable.
