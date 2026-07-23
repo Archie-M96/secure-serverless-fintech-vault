@@ -1,6 +1,6 @@
 # Enterprise-Grade Serverless Fintech Vault
 
-## Why I Built This
+## Why I Built This Project
 I wanted to answer a real constraint financial institutions face: how do you build a secure 
 document-processing pipeline without paying for infrastructure you don't strictly need? Every 
 decision below — from subnet isolation to choosing a VPC Endpoint over a NAT Gateway — was made 
